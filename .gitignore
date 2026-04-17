@@ -1,0 +1,8 @@
+/target
+Cargo.lock
+.env
+*.html
+/readings
+*.db
+/ephe
+Blueprint.md
