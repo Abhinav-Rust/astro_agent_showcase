@@ -308,7 +308,7 @@ async fn execute_reading_flow(conn: &Connection, name: String, date_str: String,
         .pool_max_idle_per_host(1)
         .timeout(std::time::Duration::from_secs(120))
         .build()
-        .expect("Failed to build reqwest client");
+        .expect("Network Initialization Error");
 
     // Prepare NaiveDateTime for location/offset resolution
     let date = match NaiveDate::parse_from_str(&date_str, "%d/%m/%Y") {
@@ -433,8 +433,7 @@ async fn execute_reading_flow(conn: &Connection, name: String, date_str: String,
     let final_reading = match api::call_gemini_with_retry(&client, system_prompt.clone(), anonymized_user_prompt.clone(), "gemini-3.1-flash-lite", 2000).await {
         Ok(reading) => reading,
         Err(e) => {
-            eprintln!("\n{}", style(format!("[!] Gemini Failed: {:?}", e)).red().bold());
-            eprintln!("All retries exhausted. No reading could be generated.");
+            eprintln!("\n{}", style(format!("[!] System Latency: {:?}", e)).red().bold());
             return;
         }
     };
@@ -473,7 +472,6 @@ async fn execute_reading_flow(conn: &Connection, name: String, date_str: String,
         println!("Reading generated! Opening in browser at: {}", absolute_path.display());
         let _ = std::process::Command::new("explorer").arg(&absolute_path).spawn();
     } else {
-        eprintln!("Failed to create HTML reading file.");
         // Fallback to terminal
         println!("\n--- AI Vedic Reading for {} ---\n{}\n--- End of Reading ---", name, final_reading);
     }
@@ -488,7 +486,7 @@ fn wait_for_enter() {
 
 #[tokio::main]
 async fn main() {
-    let conn = init_db().expect("Failed to initialize database");
+    let conn = init_db().expect("Database Initialization Error");
     let args: Vec<String> = env::args().collect();
 
     // Support CLI mode for backwards compatibility

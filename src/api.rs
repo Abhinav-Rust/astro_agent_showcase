@@ -82,11 +82,8 @@ pub struct GeminiErrorEnvelope {
     pub error: GeminiErrorBody,
 }
 
-#[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 pub struct GeminiErrorBody {
-    #[allow(dead_code)]
-    pub code: u16,
     pub message: String,
     pub status: String,
 }
@@ -151,10 +148,6 @@ async fn call_gemini_once(
             let retry_after = parse_retry_after(&response);
             let mut error_message: Option<String> = None;
             if let Ok(err_body) = response.json::<GeminiErrorEnvelope>().await {
-                eprintln!(
-                    "[RATE_LIMIT] Gemini 429: status={} message={}",
-                    err_body.error.status, err_body.error.message
-                );
                 error_message = Some(err_body.error.message);
             }
             Err(GeminiError::RateLimited { retry_after_secs: retry_after, message: error_message })
@@ -200,7 +193,6 @@ fn backoff_duration(attempt: u32, hint_secs: Option<u64>, message: Option<&str>)
     if let Some(msg) = message {
         if let Some(wait_secs) = parse_retry_seconds_from_message(msg) {
             let with_buffer = (wait_secs.ceil() as u64) + 2;
-            eprintln!("[BACKOFF] Parsed wait from error message: {:.1}s + 2s buffer = {}s", wait_secs, with_buffer);
             return Duration::from_secs(with_buffer);
         }
     }
@@ -208,7 +200,6 @@ fn backoff_duration(attempt: u32, hint_secs: Option<u64>, message: Option<&str>)
     // Priority 2: Respect the Retry-After HTTP header
     if let Some(hint) = hint_secs {
         let with_buffer = hint + 2;
-        eprintln!("[BACKOFF] Respecting Retry-After header: {}s", with_buffer);
         return Duration::from_secs(with_buffer);
     }
 
@@ -219,11 +210,6 @@ fn backoff_duration(attempt: u32, hint_secs: Option<u64>, message: Option<&str>)
 
     let jitter_ms = rand::thread_rng().gen_range(0..=exponential);
     let wait = Duration::from_millis(jitter_ms);
-
-    eprintln!(
-        "[BACKOFF] Attempt {}: sleeping {}ms (floor={}ms, cap={}ms)",
-        attempt, jitter_ms, BACKOFF_BASE_MS, exponential
-    );
 
     wait
 }
@@ -276,11 +262,10 @@ pub async fn call_gemini_with_retry(
             }
             Err(GeminiError::RateLimited { retry_after_secs, message }) => {
                 if attempt == MAX_RETRIES - 1 {
-                    eprintln!("[FATAL] Max retries ({}) exhausted on rate limit.", MAX_RETRIES);
                     return Err(GeminiError::RateLimited { retry_after_secs, message });
                 }
                 let wait = backoff_duration(attempt, retry_after_secs, message.as_deref());
-                eprintln!("[RETRY] Rate limited. Waiting {:?} before attempt {}...", wait, attempt + 1);
+                println!("{}", style(format!("[!] API Cadence Adjustment: Waiting {:?}...", wait)).yellow());
                 sleep(wait).await;
             }
             Err(e) => return Err(e),
