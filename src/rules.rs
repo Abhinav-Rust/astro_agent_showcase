@@ -6,6 +6,7 @@
 
 use crate::math::AstroData;
 
+#[allow(dead_code)]
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum NeechaBhangaType {
     None,
@@ -13,6 +14,7 @@ pub enum NeechaBhangaType {
     RajYoga,
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct ProcessedPlanet {
     pub name: String,
@@ -25,6 +27,7 @@ pub struct ProcessedPlanet {
     pub conjunct_with: Vec<String>,
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct HouseLordship {
     pub house: usize,
@@ -32,6 +35,7 @@ pub struct HouseLordship {
     pub lord: &'static str,
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct ExpertData {
     pub planets: Vec<ProcessedPlanet>,

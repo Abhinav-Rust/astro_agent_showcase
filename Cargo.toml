@@ -5,7 +5,6 @@ edition = "2024"
 
 [dependencies]
 tokio = { version = "1.51.1", features = ["full"] }
-swiss-eph = "0.2.1"  # Required by the original math engine (stubbed in this showcase)
 reqwest = { version = "0.12", features = ["json"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -19,10 +18,14 @@ console = "0.16.3"
 open = "5.3.3"
 rand = "0.8"
 
-[[bin]]
-name = "verify_db"
-path = "src/verify_db.rs"
+[lib]
+name = "astro_agent"
+path = "src/lib.rs"
 
 [[bin]]
 name = "astro_agent"
 path = "src/main.rs"
+
+[[bin]]
+name = "verify_db"
+path = "src/bin/verify_db.rs"

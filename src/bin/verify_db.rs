@@ -1,6 +1,3 @@
-mod math;
-mod rules;
-mod api;
 use rusqlite::{Connection, Result};
 
 fn main() -> Result<()> {

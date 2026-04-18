@@ -4,6 +4,16 @@
 
 ---
 
+## 🛠️ Upgrades & Improvements (April 2026)
+
+This repository has been refactored for maximum leaness and architectural clarity. Key upgrades include:
+- **Zero-Warning Build**: Fixed all `unused_assignments` and `dead_code` warnings.
+- **Library/Binary Separation**: Migrated to a `src/lib.rs` architecture to share logic between the main agent and helper utilities.
+- **Dependency Optimization**: Removed the heavy `swiss-eph` C-dependency and purged ~10MB of unrelated code.
+- **Modernized Layout**: Reorganized standalone utilities into `src/bin/` for standard Rust compliance.
+
+---
+
 ## What This Is
 
 A **Rust-based, high-performance, fault-tolerant multi-agent LLM pipeline** built to orchestrate complex, multi-step AI workflows against rate-limited APIs. The system was originally designed for production Vedic astrology readings but the patterns generalize to any domain requiring:
@@ -103,7 +113,7 @@ Client PII is stripped from the prompt payload before API submission — names a
 | Timezone Resolution | `tzf-rs` (offline, embedded TZ database) |
 | Historical TZ Offsets | `chrono-tz` |
 | TUI | `dialoguer` + `console` |
-| Ephemeris | Swiss Ephemeris via `swiss-eph` (stubbed) |
+| Serialization | `serde` + `serde_json` |
 
 ---
 
@@ -111,13 +121,15 @@ Client PII is stripped from the prompt payload before API submission — names a
 
 ```
 src/
+├── lib.rs        # Shared library for all modules
 ├── main.rs       # CLI/TUI, orchestration, DB layer, presentation
 ├── api.rs        # Gemini API client, retry logic, backoff engine
 ├── math.rs       # [STUBBED] Planetary position calculations
 ├── rules.rs      # [STUBBED] Vedic astrology rules engine
 ├── dasha.rs      # [STUBBED] Vimshottari Dasha timeline generator
 ├── geo.rs        # Geocoding + historical timezone resolution
-└── verify_db.rs  # Standalone DB inspection utility
+└── bin/
+    └── verify_db.rs # Standalone DB inspection utility
 ```
 
 ---

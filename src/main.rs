@@ -1,8 +1,4 @@
-mod math;
-mod rules;
-mod api;
-mod geo;
-mod dasha;
+use astro_agent::{math, rules, api, geo, dasha};
 use rusqlite::{params, Connection, Result, OptionalExtension};
 use std::env;
 use std::io::{self, Write};
@@ -434,17 +430,14 @@ async fn execute_reading_flow(conn: &Connection, name: String, date_str: String,
     let _ = std::fs::write("readings/last_prompt_log.txt", &combined_prompt);
 
     println!("Calling Gemini API...");
-    let mut final_reading = String::new();
-    match api::call_gemini_with_retry(&client, system_prompt.clone(), anonymized_user_prompt.clone(), "gemini-3.1-flash-lite", 2000).await {
-        Ok(reading) => {
-            final_reading = reading;
-        }
+    let final_reading = match api::call_gemini_with_retry(&client, system_prompt.clone(), anonymized_user_prompt.clone(), "gemini-3.1-flash-lite", 2000).await {
+        Ok(reading) => reading,
         Err(e) => {
             eprintln!("\n{}", style(format!("[!] Gemini Failed: {:?}", e)).red().bold());
             eprintln!("All retries exhausted. No reading could be generated.");
             return;
         }
-    }
+    };
 
     if let Err(e) = save_reading(&conn, client_id, &question, &final_reading) {
         eprintln!("Failed to save reading: {}", e);

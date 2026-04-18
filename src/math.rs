@@ -2,12 +2,14 @@
 // This module originally contained Swiss Ephemeris integration for sidereal
 // planetary longitude computation, house cusp calculation, and Parivartan Yoga detection.
 
+#[allow(dead_code)]
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum System {
     Vedic,
     KP,
 }
 
+#[allow(dead_code)]
 #[derive(Clone, Copy, PartialEq, Eq, Default)]
 pub enum HouseSystem {
     Placidus,
@@ -16,6 +18,7 @@ pub enum HouseSystem {
     SriPati,
 }
 
+#[allow(dead_code)]
 pub struct BirthDetails {
     pub date: String,
     pub time: String,
@@ -26,12 +29,14 @@ pub struct BirthDetails {
     pub house_system: HouseSystem,
 }
 
+#[allow(dead_code)]
 pub struct PlanetData {
     pub name: String,
     pub longitude: f64,
     pub speed: f64,
 }
 
+#[allow(dead_code)]
 pub struct AstroData {
     pub system: System,
     pub planets: Vec<PlanetData>,

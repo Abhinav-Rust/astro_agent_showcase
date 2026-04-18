@@ -82,8 +82,10 @@ pub struct GeminiErrorEnvelope {
     pub error: GeminiErrorBody,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 pub struct GeminiErrorBody {
+    #[allow(dead_code)]
     pub code: u16,
     pub message: String,
     pub status: String,
