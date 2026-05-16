@@ -1,10 +1,11 @@
-use astro_agent::{math, rules, api, geo, dasha};
+use astro_agent::{math, rules, api, geo, dasha, utils};
 use rusqlite::{params, Connection, Result, OptionalExtension};
 use std::env;
 use std::io::{self, Write};
 use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
 use dialoguer::{Input, Select, Confirm};
 use console::{style};
+use tokio::io::AsyncWriteExt;
 
 fn init_db() -> Result<Connection> {
     let conn = Connection::open("astrology_journal.db")?;
@@ -426,8 +427,8 @@ async fn execute_reading_flow(conn: &Connection, name: String, date_str: String,
     }
 
     let combined_prompt = format!("{}\n\n{}", system_prompt, anonymized_user_prompt);
-    std::fs::create_dir_all("readings").unwrap_or_default();
-    let _ = std::fs::write("readings/last_prompt_log.txt", &combined_prompt);
+    tokio::fs::create_dir_all("readings").await.unwrap_or_default();
+    let _ = tokio::fs::write("readings/last_prompt_log.txt", &combined_prompt).await;
 
     println!("Calling Gemini API...");
     let final_reading = match api::call_gemini_with_retry(&client, system_prompt.clone(), anonymized_user_prompt.clone(), "gemini-3.1-flash-lite", 2000).await {
@@ -445,7 +446,7 @@ async fn execute_reading_flow(conn: &Connection, name: String, date_str: String,
     }
 
     // Presentation Layer
-    std::fs::create_dir_all("readings").unwrap_or_default();
+    tokio::fs::create_dir_all("readings").await.unwrap_or_default();
     
     let html_content = format!(
         "<!DOCTYPE html>\n<html>\n<head>\n\
@@ -459,7 +460,7 @@ async fn execute_reading_flow(conn: &Connection, name: String, date_str: String,
         name, name, final_reading
     );
 
-    let clean_name = name.replace(" ", "_");
+    let clean_name = utils::sanitize_filename(&name);
     let date_suffix = chrono::Local::now().format("%Y%m%d_%H%M%S");
     let filename = format!("{}_{}.html", clean_name, date_suffix);
 
@@ -467,10 +468,10 @@ async fn execute_reading_flow(conn: &Connection, name: String, date_str: String,
     absolute_path.push("readings");
     absolute_path.push(&filename);
 
-    if let Ok(mut file) = std::fs::File::create(&absolute_path) {
-        let _ = file.write_all(html_content.as_bytes());
+    if let Ok(mut file) = tokio::fs::File::create(&absolute_path).await {
+        let _ = file.write_all(html_content.as_bytes()).await;
         println!("Reading generated! Opening in browser at: {}", absolute_path.display());
-        let _ = std::process::Command::new("explorer").arg(&absolute_path).spawn();
+        let _ = open::that(&absolute_path);
     } else {
         // Fallback to terminal
         println!("\n--- AI Vedic Reading for {} ---\n{}\n--- End of Reading ---", name, final_reading);
